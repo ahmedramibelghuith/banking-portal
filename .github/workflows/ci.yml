@@ -27,7 +27,7 @@ jobs:
       - name: Frontend unit tests
         run: |
           export CHROME_BIN="$(node -e "console.log(require('playwright').chromium.executablePath())")"
-          npm test -- --watch=false --browsers=ChromeHeadless
+          npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox
       - run: npm run e2e
       - uses: actions/upload-artifact@v7
         if: failure()

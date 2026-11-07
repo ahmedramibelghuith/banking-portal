@@ -40,3 +40,13 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Backend runtime data and build output
+/GestionBanque/target/
+/GestionBanque/bin/
+/GestionBanque/data/
+.env
+
+# Browser test artifacts
+/playwright-report/
+/test-results/

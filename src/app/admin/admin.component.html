@@ -1,0 +1,34 @@
+<main class="workspace admin-workspace">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">BANKING PORTAL / ADMIN</p>
+      <h1>Administration</h1>
+    </div>
+    <div class="actions">
+      <a routerLink="/home">My accounts</a
+      ><button class="secondary" (click)="logout()">Sign out</button>
+    </div>
+  </header>
+  @if (error) {
+    <p class="error" role="alert">{{ error }}</p>
+  }
+  <button class="secondary" (click)="load()" [disabled]="loading">Refresh statistics</button>
+  @if (loading) {
+    <p role="status">Loading statistics…</p>
+  }
+  @if (summary; as stats) {
+    <section class="account-grid stats">
+      <button class="stat-card" (click)="list()">
+        <span>Clients</span><strong>{{ stats.clients }}</strong
+        ><span>View clients →</span></button
+      ><button class="stat-card" (click)="Operationscomptes()">
+        <span>Accounts</span><strong>{{ stats.accounts }}</strong
+        ><span>View accounts →</span></button
+      ><button class="stat-card" (click)="Operationstransactions()">
+        <span>Ledger entries</span><strong>{{ stats.transactions }}</strong
+        ><span>View transactions →</span>
+      </button>
+    </section>
+    <p class="muted">A transfer creates two ledger entries: one debit and one credit.</p>
+  }
+</main>

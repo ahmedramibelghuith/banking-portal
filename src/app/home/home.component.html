@@ -1,107 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-    <style>
-        .menu-container{background: linear-gradient(to right,#838d82, #e6ebe5	); padding: 1rem 2.5rem; color: white;       }
-        .font-family-karla { font-family: 'Karla', sans-serif; }
-        .bg-sidebar { background: #102C57; }
-        .cta-btn { color: #102C57; }
-        .upgrade-btn { background:#102C57; }
-        .upgrade-btn:hover { background: #102C57; }
-        .active-nav-link { background: #102C57; }
-        .nav-item:hover { background: #102C57; }
-        .account-link:hover { background: #102C57; }
-    </style>
-</head>
-<body class="bg-gray-100 font-family-karla flex">
-
-    <aside class="relative bg-sidebar h-screen w-64 shadow-xl">
-        <div class="p-6">
-            <a href="#" class="text-white text-2xl font-semibold uppercase hover:text-gray-300">BANKING PORTAL</a>
-            <p class="w-full bg-white cta-btn font-semibold py-2 mt-5 rounded-br-lg rounded-bl-lg rounded-tr-lg shadow-lg hover:shadow-xl hover:bg-gray-300 flex items-center justify-center">
-                <i class="fas fa-plus mr-3"></i> Accounts
-            </p>
-        </div>
-        <nav class="text-white text-base font-semibold pt-3">
-            <a href="index.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
-                <i class="fas fa-tachometer-alt mr-3"></i>
-                SAVINGS ACCOUNT 1
-            </a>
-            <a href="blank.html" class="flex items-center active-nav-link text-white py-4 pl-6 nav-item">
-                <i class="fas fa-sticky-note mr-3"></i>
-                CURRENT ACCOUNT 1(ACTIVE)            
-            </a>
-            <button href="forms.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
-                <i class="fas fa-align-left mr-3"></i>
-                ADD ACCOUNT epargne
-            </button>
-            <button href="forms.html" class="flex items-center text-white opacity-75 hover:opacity-100 py-4 pl-6 nav-item">
-                <i class="fas fa-align-left mr-3"></i>
-                ADD ACCOUNT courant
-            </button>
-        </nav>
-        <a href="/login" class="absolute w-full upgrade-btn bottom-0 active-nav-link text-white flex items-center justify-center py-4">
-            Sign Out
-        </a>
-    </aside>
-
-    <div class="relative w-full flex flex-col h-screen overflow-y-hidden">
-        <!-- Desktop Header -->
-               <!-- Desktop Header -->
-               <div class="menu-container" clickOutside (clickOutside)="clickedOutside()">
-                <button class="menu-toggler" (click)="toggleMenu()">Account settings</button>
-                @if (isMenuOpened) {
-                <div class="menu">
-                  <a class="menu-item">News</a>
-                  <div class="menu-item">Contacts</div>
-                  <div class="menu-item">About</div>
-                </div>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/home">BANKING PORTAL</a>
+    <p class="eyebrow">YOUR ACCOUNTS</p>
+    <button class="sidebar-button" (click)="create('CURRENT')" [disabled]="busy">
+      + Current account</button
+    ><button class="sidebar-button" (click)="create('SAVINGS')" [disabled]="busy">
+      + Savings account
+    </button>
+    @if (auth.user()?.role === 'ADMIN') {
+      <a routerLink="/admin">Administration</a>
+    }
+    <button class="sidebar-button signout" (click)="logout()">Sign out</button>
+  </aside>
+  <main class="workspace">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">OVERVIEW</p>
+        <h1>Welcome, {{ auth.user()?.prenom }}</h1>
+      </div>
+      <div clickOutside (clickOutside)="clickedOutside()">
+        <button class="secondary" (click)="toggleMenu()" [attr.aria-expanded]="isMenuOpened">
+          Account settings
+        </button>
+        @if (isMenuOpened) {
+          <div class="settings-menu">
+            <p>{{ auth.user()?.email }}</p>
+            <button class="secondary" (click)="logout()">Sign out</button>
+          </div>
+        }
+      </div>
+    </header>
+    <section class="balance-banner">
+      <p>Total active balance</p>
+      <strong>{{ total | currency: 'USD' }}</strong
+      ><span>{{ accounts.length }} accounts</span>
+    </section>
+    @if (error) {
+      <p class="error" role="alert">{{ error }}</p>
+      <button class="secondary" (click)="load()">Retry</button>
+    }
+    @if (message) {
+      <p class="success" role="status">{{ message }}</p>
+    }
+    @if (loading) {
+      <p role="status">Loading accounts…</p>
+    } @else if (!accounts.length && !error) {
+      <section class="empty-state">
+        <h2>Open your first account</h2>
+        <p>Choose a current or savings account from the menu to get started.</p>
+      </section>
+    }
+    <section class="account-grid" aria-label="Your accounts">
+      @for (account of accounts; track account.id) {
+        <article class="account-card">
+          <div class="card-heading">
+            <h2>{{ account.type === 'CURRENT' ? 'Current account' : 'Savings account' }}</h2>
+            <span class="badge">{{ account.etat === 'FERME' ? 'CLOSED' : account.etat }}</span>
+          </div>
+          <p class="muted">
+            Account #{{ account.id }} · Opened {{ account.dateCreation | date: 'mediumDate' }}
+          </p>
+          <p class="account-balance">{{ account.solde | currency: 'USD' }}</p>
+          <div class="actions">
+            @if (account.etat === 'ACTIVE') {
+              <button (click)="transact(account, 'deposit')">Deposit</button
+              ><button class="secondary" (click)="transact(account, 'withdraw')">Withdraw</button
+              ><button class="secondary" (click)="transact(account, 'transfer')">Transfer</button>
+            }
+            <button class="text-button" (click)="history(account.id)">History</button>
+            @if (account.etat === 'ACTIVE') {
+              <button class="text-button danger" (click)="close(account)" [disabled]="busy">
+                Close account
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </section>
+    @if (selectedId !== null) {
+      <section class="history">
+        <h2>Transactions · Account #{{ selectedId }}</h2>
+        @if (historyLoading) {
+          <p role="status">Loading transactions…</p>
+        } @else if (historyError) {
+          <p class="error" role="alert">{{ historyError }}</p>
+        } @else {
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (operation of operations; track operation.id) {
+                  <tr>
+                    <td>{{ operation.dateOperation | date: 'medium' }}</td>
+                    <td>{{ operation.type }}</td>
+                    <td>{{ operation.montant | currency: 'USD' }}</td>
+                    <td class="reference">{{ operation.reference }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4">No transactions yet.</td>
+                  </tr>
                 }
-              </div>
-
-        <div class="w-full bg-white h-screen overflow-x-hidden border-t flex flex-col">
-            <main class="w-full flex-grow p-6" style="background-color: #e6ebe5;">
-                <h1 class="text-3xl text-black pb-6">Account</h1>
-
-                <div class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700">
-                    <a >
-                        <img class="p-8 rounded-t-lg" src="./assets/Current_account.png" alt="current" />
-                    </a>
-                    <div class="px-5 pb-5">
-                        <a href="#">
-                            <h5 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">Current account</h5>
-                        </a>
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-3xl font-bold text-gray-900 dark:text-white">$599</span>
-                            <button href="#" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                Withdraw</button>
-                            <button href="#" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                Deposit</button>
-                        </div>
-                    </div>
-                </div>
-    
-            </main>
-            
-            <footer style="background-color: #e6ebe5;" class="w-full bg-white text-right p-4">
-                Built by <a target="_blank" class="underline">ness Tayra</a>.
-            </footer>
-        </div>
-    </div>
-    <!-- Font Awesome -->
-    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
-    <!-- Font Awesome -->
-    <script src="https://unpkg.com/flowbite@1.5.1/dist/flowbite.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js" integrity="sha256-KzZiKy0DWYsnwMF+X1DvQngQ2/FxF7MF3Ff72XcpuPs=" crossorigin="anonymous"></script>
-</body>
-</html>
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  </main>
+</div>

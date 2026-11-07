@@ -1,62 +1,142 @@
-import { ActivatedRoute, Router } from '@angular/router';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
-
+import { ApiService, errorMessage } from '../core/api.service';
+import { AuthService } from '../core/auth.service';
+import { Account, Operation } from '../core/models';
+import { OperationComponent } from '../operation/operation.component';
+import { WithdrawComponent } from '../withdraw/withdraw.component';
+import { TransferComponent } from '../transfer/transfer.component';
 @Component({
-    selector: 'app-home',
-    templateUrl: './home.component.html',
-    styleUrls: ['./home.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css'],
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
-export class HomeComponent   {
-  
-  constructor(private route: ActivatedRoute,private http: HttpClient) { }
-  email: string = ''; // Déclaration de la propriété email
-
+export class HomeComponent implements OnInit {
+  private api = inject(ApiService);
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+  auth = inject(AuthService);
+  accounts: Account[] = [];
+  operations: Operation[] = [];
+  selectedId: number | null = null;
+  loading = true;
+  busy = false;
+  historyLoading = false;
+  error = '';
+  historyError = '';
+  message = '';
+  isMenuOpened = false;
+  get total() {
+    return this.accounts
+      .filter((a) => a.etat === 'ACTIVE')
+      .reduce((total, a) => total + Number(a.solde), 0);
+  }
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.email = params['email'];
-      this.getIdCompte()
-      console.log(this.IdResponse)
-    });
+    void this.load();
   }
-  IdResponse(IdResponse: any) {
-    throw new Error('Method not implemented.');
+  async load() {
+    this.loading = true;
+    this.error = '';
+    try {
+      this.accounts = await firstValueFrom(this.api.accounts());
+      if (this.selectedId !== null) await this.history(this.selectedId);
+    } catch (error) {
+      this.error = errorMessage(error);
+    } finally {
+      this.loading = false;
+    }
   }
-  isMenuOpened: boolean = false;
-
-  toggleMenu(): void {
+  async create(type: Account['type']) {
+    if (this.busy) return;
+    this.busy = true;
+    this.error = '';
+    this.message = '';
+    try {
+      await firstValueFrom(this.api.createAccount(type));
+      this.message = 'Account opened.';
+      await this.load();
+    } catch (error) {
+      this.error = errorMessage(error);
+    } finally {
+      this.busy = false;
+    }
+  }
+  async close(account: Account) {
+    if (
+      this.busy ||
+      !confirm(`Close account #${account.id}? Its transaction history will be retained.`)
+    )
+      return;
+    this.busy = true;
+    this.error = '';
+    this.message = '';
+    try {
+      await firstValueFrom(this.api.closeAccount(account.id));
+      this.message = 'Account closed.';
+      await this.load();
+    } catch (error) {
+      this.error = errorMessage(error);
+    } finally {
+      this.busy = false;
+    }
+  }
+  async history(id: number) {
+    this.selectedId = id;
+    this.historyLoading = true;
+    this.historyError = '';
+    this.operations = [];
+    try {
+      const operations = await firstValueFrom(this.api.history(id));
+      if (this.selectedId === id) this.operations = operations;
+    } catch (error) {
+      if (this.selectedId === id) this.historyError = errorMessage(error);
+    } finally {
+      if (this.selectedId === id) this.historyLoading = false;
+    }
+  }
+  async transact(account: Account, kind: 'deposit' | 'withdraw' | 'transfer') {
+    const component =
+      kind === 'deposit'
+        ? OperationComponent
+        : kind === 'withdraw'
+          ? WithdrawComponent
+          : TransferComponent;
+    const changed = await firstValueFrom(
+      this.dialog
+        .open<
+          OperationComponent | WithdrawComponent | TransferComponent,
+          { account: Account },
+          boolean
+        >(component, {
+          data: { account },
+          width: '440px',
+          maxWidth: '95vw',
+          autoFocus: 'first-tabbable',
+        })
+        .afterClosed(),
+    );
+    if (changed) {
+      this.message = 'Transaction completed.';
+      await this.load();
+    }
+  }
+  toggleMenu() {
     this.isMenuOpened = !this.isMenuOpened;
   }
-
-  clickedOutside(): void {
+  clickedOutside() {
     this.isMenuOpened = false;
   }
-  formatDateISO(date: Date): string {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // getMonth() returns 0-11
-    const day = date.getDate();
-
-    // Pad the month and day with leading zeros if necessary
-    const formattedMonth = month < 10 ? `0${month}` : month;
-    const formattedDay = day < 10 ? `0${day}` : day;
-
-    return `${year}-${formattedMonth}-${formattedDay}`;
+  async logout() {
+    this.error = '';
+    try {
+      await this.auth.logout();
+      await this.router.navigate(['/login']);
+    } catch (error) {
+      this.error = errorMessage(error);
+    }
   }
-  formattedDate : String ="";
-  ID : number = 0
-  async getIdCompte(){
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to midnight
-    this.formattedDate = this.formatDateISO(today);
-    const getID = 'http://'+ window.location.hostname + ':8080/api/clients/'+this.email
-    const IdResponse = await firstValueFrom(this.http.get<{ id: number }>(getID));
-    this.ID = IdResponse.id
-  }
-  
 }
-
-

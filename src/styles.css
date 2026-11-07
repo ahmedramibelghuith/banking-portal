@@ -1,2 +1,369 @@
-/* You can add global styles to this file, and also import other style files */
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #172d44;
+  background: #f3f5f3;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+h1 {
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  letter-spacing: -0.035em;
+}
+h2 {
+  font-size: 1.25rem;
+}
+a {
+  color: #184e78;
+  text-underline-offset: 3px;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  background: #183c61;
+  color: white;
+  border: 1px solid #183c61;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+}
+button:hover {
+  filter: brightness(1.12);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #5d9ce2;
+  outline-offset: 3px;
+}
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 1rem 0 0.45rem;
+}
+input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #a8b5bf;
+  border-radius: 8px;
+  background: white;
+  color: #172d44;
+}
+input:focus {
+  outline: 2px solid #326d99;
+}
+form > button {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+.secondary {
+  background: white;
+  color: #183c61;
+  border-color: #b4c3cf;
+}
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #183c61;
+  padding: 0.5rem;
+}
+.danger {
+  color: #a32727;
+}
+.muted {
+  color: #526675;
+  font-size: 0.9rem;
+}
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.13em;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+.error,
+.success {
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.error {
+  background: #fff0ef;
+  color: #8c2723;
+}
+.success {
+  background: #e6f4ec;
+  color: #225637;
+}
+.field-error {
+  color: #9c2929;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.auth-brand {
+  padding: clamp(2rem, 7vw, 7rem);
+  background: #e6ebe5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.auth-brand h1 {
+  font-size: clamp(2.5rem, 4vw, 4rem);
+}
+.auth-brand img {
+  max-width: 220px;
+  margin-top: 2rem;
+  border-radius: 16px;
+}
+.auth-panel {
+  align-self: center;
+  width: min(100%, 500px);
+  padding: 3rem 2rem;
+  justify-self: center;
+}
+.auth-panel > p:last-child {
+  margin-top: 1.5rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.app-shell {
+  display: grid;
+  grid-template-columns: 235px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.sidebar {
+  background: #102c57;
+  color: white;
+  padding: 2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.brand {
+  color: white;
+  font-weight: 750;
+  text-decoration: none;
+  margin-bottom: 2rem;
+  letter-spacing: -0.03em;
+}
+.sidebar-button {
+  background: transparent;
+  border-color: #7085a1;
+  text-align: left;
+}
+.sidebar a {
+  color: white;
+}
+.signout {
+  margin-top: auto;
+}
+.workspace {
+  padding: clamp(1.2rem, 3vw, 3rem);
+  min-width: 0;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.page-header h1,
+.page-header h2 {
+  margin-bottom: 0;
+}
+.settings-menu {
+  padding: 1rem;
+  background: white;
+  border: 1px solid #d4dce1;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.balance-banner {
+  background: #dfe9df;
+  border-radius: 14px;
+  padding: 1.8rem;
+  margin-bottom: 2rem;
+}
+.balance-banner strong {
+  display: block;
+  font-size: 2.5rem;
+  letter-spacing: -0.04em;
+}
+.balance-banner span {
+  display: block;
+  margin-top: 0.8rem;
+  font-size: 0.85rem;
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap: 1.2rem;
+}
+.account-card,
+.history,
+.empty-state {
+  background: white;
+  border: 1px solid #dde4e8;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.badge {
+  background: #edf2ee;
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.account-balance {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1.5rem 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.history {
+  margin-top: 2rem;
+}
+.table-scroll {
+  overflow: auto;
+  max-height: 60vh;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+}
+td,
+th {
+  padding: 0.9rem 0.7rem;
+  border-bottom: 1px solid #e1e6ea;
+  white-space: nowrap;
+}
+th {
+  background: #f0f4f5;
+  position: sticky;
+  top: 0;
+}
+.reference {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+.dialog-content {
+  padding: 1.5rem;
+}
+.dialog-content .mat-mdc-dialog-title {
+  padding: 0;
+}
+.dialog-content .actions {
+  margin-top: 1.5rem;
+}
+.admin-workspace {
+  max-width: 1250px;
+  margin: auto;
+}
+.stats {
+  margin-top: 2rem;
+}
+.stat-card {
+  background: white;
+  color: #172d44;
+  border-color: #d4dde3;
+  padding: 2rem;
+  text-align: left;
+}
+.stat-card span,
+.stat-card strong {
+  display: block;
+}
+.stat-card strong {
+  font-size: 3rem;
+  margin: 0.8rem 0;
+}
+.stats + p {
+  margin-top: 1rem;
+}
+@media (max-width: 760px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+  .auth-brand {
+    padding: 2rem;
+  }
+  .auth-brand h1 {
+    font-size: 2rem;
+  }
+  .auth-brand img {
+    display: none;
+  }
+  .auth-panel {
+    padding: 2rem 1.5rem;
+  }
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    padding: 1rem;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sidebar .eyebrow {
+    display: none;
+  }
+  .brand {
+    width: 100%;
+    margin: 0;
+  }
+  .signout {
+    margin-top: 0;
+  }
+  .sidebar-button {
+    font-size: 0.8rem;
+    padding: 0.55rem;
+  }
+  .balance-banner strong {
+    font-size: 2rem;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

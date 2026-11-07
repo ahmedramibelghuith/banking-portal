@@ -1,22 +1,39 @@
-
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
-
-import { ActivatedRoute, Router } from '@angular/router';
-
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../core/auth.service';
+import { errorMessage } from '../core/api.service';
 @Component({
-    selector: 'app-login',
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.css'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class LoginComponent {
-  constructor(private router: Router,private activateRouter:ActivatedRoute) { }
-
-  signIn() {
-    const emailInput = document.getElementById('email') as HTMLInputElement;
-    const email = emailInput.value;   
-    this.router.navigate(['/home'], { queryParams: { email: email } });
-    // Add more logic here as needed
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  form = inject(FormBuilder).nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
+  busy = false;
+  error = '';
+  async signIn() {
+    if (this.form.invalid || this.busy) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    this.busy = true;
+    this.error = '';
+    try {
+      const { email, password } = this.form.getRawValue();
+      const user = await this.auth.login(email, password);
+      await this.router.navigate([user?.role === 'ADMIN' ? '/admin' : '/home']);
+    } catch (error) {
+      this.error = errorMessage(error);
+    } finally {
+      this.busy = false;
+    }
   }
 }

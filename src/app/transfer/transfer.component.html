@@ -1,0 +1,31 @@
+<section class="dialog-content">
+  <h2 mat-dialog-title>Transfer</h2>
+  <p>Account #{{ data.account.id }} · Balance {{ data.account.solde | currency: 'USD' }}</p>
+  <form [formGroup]="form" (ngSubmit)="transfer()">
+    <label for="receiver-input">Destination account ID</label
+    ><input id="receiver-input" formControlName="receiver" inputmode="numeric" required /><label
+      for="number-input"
+      >Amount (USD)</label
+    ><input
+      id="number-input"
+      formControlName="amount"
+      inputmode="decimal"
+      placeholder="0.00"
+      required
+    />
+    @if (form.touched && form.invalid) {
+      <p class="field-error">
+        Enter a positive amount with at most two decimal places and a valid destination ID.
+      </p>
+    }
+    @if (error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+    <div class="actions">
+      <button type="submit" [disabled]="busy">{{ busy ? 'Processing…' : 'Transfer' }}</button
+      ><button type="button" class="secondary" [disabled]="busy" (click)="dialog.close()">
+        Cancel
+      </button>
+    </div>
+  </form>
+</section>

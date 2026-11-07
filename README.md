@@ -1,6 +1,8 @@
 # Banking Portal
 
-Banking Portal combines the upgraded **Banque frontend** with the banking features and Java backend from **Digital-Bank**. Version **1.0.0** keeps the existing Angular component names while completing their connection to a single API.
+Banking Portal is an improved and modernized version of an older banking project, [Digital-Bank](https://github.com/ahmedramibelghuith/Digital-Bank). It builds on that original work by upgrading Angular, integrating the frontend and backend, completing existing features, and improving authentication, transaction handling, and testing.
+
+Version **1.0.0** combines the upgraded **Banque frontend** with the banking features and Java backend from the original Digital-Bank project, retaining the existing Angular component names.
 
 ## What was combined
 
@@ -15,7 +17,7 @@ Banking Portal combines the upgraded **Banque frontend** with the banking featur
 | Backend        | Not included                 | Spring Boot 3.2.4, Java 17, MySQL             | Spring Boot 3.5.16, Java 21, H2 locally and optional MySQL                        |
 | Verification   | Eight migration tests        | Generated test scaffolding                    | 15 frontend tests, nine backend integration tests, three full-stack browser tests |
 
-The combined source is in this repository. The separate `Digital-Bank` repository/folder is retained as the original reference; the projects do not synchronize automatically. Existing database records are **not** copied or migrated by this integration.
+The combined source is in this repository. [Digital-Bank](https://github.com/ahmedramibelghuith/Digital-Bank) is the older original project, retained as a historical reference. Banking Portal continues and improves that work; the two repositories do not synchronize automatically. Existing database records are **not** copied or migrated by this integration.
 
 ## Run in WSL
 

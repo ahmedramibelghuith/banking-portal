@@ -80,7 +80,3 @@ Verification completed after the migration:
 - The installed dependency tree passed `npm ls --depth=0`.
 
 The browser smoke checks were run as migration verification; a persistent end-to-end test suite has not been added.
-
-## Current scope
-
-This remains a frontend prototype. Login currently navigates using the entered email rather than authenticating a password. Registration and transaction actions are not connected to a backend, and the displayed balance is static. The framework migration preserves these existing behaviors; it does not implement production authentication or banking transactions.

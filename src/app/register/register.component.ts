@@ -1,10 +1,12 @@
-import {Component, inject} from '@angular/core';
-import {CommonModule} from "@angular/common";
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+
 
 @Component({
-  selector: 'app-register',
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+    selector: 'app-register',
+    templateUrl: './register.component.html',
+    styleUrls: ['./register.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class RegisterComponent {
 

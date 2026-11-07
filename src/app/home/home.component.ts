@@ -1,12 +1,15 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { HttpClient,HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class HomeComponent   {
   
@@ -50,7 +53,7 @@ export class HomeComponent   {
     today.setHours(0, 0, 0, 0); // Reset time to midnight
     this.formattedDate = this.formatDateISO(today);
     const getID = 'http://'+ window.location.hostname + ':8080/api/clients/'+this.email
-    const IdResponse: any = await this.http.get(getID).toPromise();
+    const IdResponse = await firstValueFrom(this.http.get<{ id: number }>(getID));
     this.ID = IdResponse.id
   }
   

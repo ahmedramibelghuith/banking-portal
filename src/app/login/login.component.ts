@@ -1,12 +1,14 @@
 
-import {Component, inject} from '@angular/core';
-import {CommonModule} from "@angular/common";
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class LoginComponent {
   constructor(private router: Router,private activateRouter:ActivatedRoute) { }

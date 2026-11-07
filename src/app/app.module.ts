@@ -8,7 +8,7 @@ import { HelloWorldComponent } from './hello-world/hello-world.component';
 import { RegisterComponent } from './register/register.component';
 import { HomeComponent } from './home/home.component';
 import { MatMenuModule } from '@angular/material/menu';
-import { HttpClientModule } from '@angular/common/http'; // Import HttpClientModule
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -19,14 +19,8 @@ import { HttpClientModule } from '@angular/common/http'; // Import HttpClientMod
     RegisterComponent,
     HomeComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    MatMenuModule,
-    HttpClientModule
-    
-  ],
-  providers: [],
+  imports: [BrowserModule, AppRoutingModule, MatMenuModule],
+  providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

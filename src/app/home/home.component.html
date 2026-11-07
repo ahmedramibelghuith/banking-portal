@@ -58,11 +58,13 @@
                <!-- Desktop Header -->
                <div class="menu-container" clickOutside (clickOutside)="clickedOutside()">
                 <button class="menu-toggler" (click)="toggleMenu()">Account settings</button>
-                <div class="menu" *ngIf="isMenuOpened">
+                @if (isMenuOpened) {
+                <div class="menu">
                   <a class="menu-item">News</a>
                   <div class="menu-item">Contacts</div>
                   <div class="menu-item">About</div>
                 </div>
+                }
               </div>
 
         <div class="w-full bg-white h-screen overflow-x-hidden border-t flex flex-col">

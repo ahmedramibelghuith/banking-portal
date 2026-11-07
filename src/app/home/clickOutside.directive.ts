@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
 import {
+  DOCUMENT,
   AfterViewInit,
   Directive,
   ElementRef,
@@ -12,6 +12,7 @@ import { filter, fromEvent, Subscription } from 'rxjs';
 
 @Directive({
   selector: '[clickOutside]',
+  standalone: false,
 })
 export class ClickOutsideDirective implements AfterViewInit, OnDestroy {
   @Output() clickOutside = new EventEmitter<void>();

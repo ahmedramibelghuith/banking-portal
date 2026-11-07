@@ -1,4 +1,4 @@
-# Banque
+# Banking Portal
 
 An Angular banking frontend prototype with sign-in, registration, and an account dashboard. Originally generated with Angular CLI 17.3.3, this project was migrated to Angular 22 while preserving its existing components, routes, and screens.
 
@@ -64,7 +64,7 @@ npm run build
 npm test -- --watch=false --browsers=ChromeHeadless
 ```
 
-The production output is written to `dist/angular-test/browser/`.
+The production output is written to `dist/banking-portal/browser/`.
 
 Browser tests require Chrome or Chromium. If it is not detected automatically, point `CHROME_BIN` to the Linux browser executable:
 

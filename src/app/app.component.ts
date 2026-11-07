@@ -8,5 +8,5 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     standalone: false
 })
 export class AppComponent {
-  title = 'angular-test';
+  title = 'banking-portal';
 }

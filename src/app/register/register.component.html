@@ -41,7 +41,7 @@
         minlength="12"
         maxlength="64"
       />
-      <p class="muted">Use 12–64 characters.</p>
+      <p class="muted">Use 12–64 characters, at most 72 UTF-8 bytes.</p>
       <label for="confirmation">Confirm password</label
       ><input
         id="confirmation"
@@ -52,7 +52,8 @@
       />
       @if (form.touched && form.invalid) {
         <p class="field-error">
-          Complete all fields with a valid email and matching passwords of 12–64 characters.
+          Complete all fields with a valid email and matching passwords of 12–64 characters (at most
+          72 UTF-8 bytes).
         </p>
       }
       @if (error) {

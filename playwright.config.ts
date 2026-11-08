@@ -16,6 +16,10 @@ export default defineConfig({
       timeout: 180_000,
       reuseExistingServer: false,
       env: {
+        SPRING_PROFILES_ACTIVE: 'default',
+        SERVER_PORT: '8080',
+        AUTH_REQUESTS_PER_MINUTE: '1000',
+        DB_BASELINE_ON_MIGRATE: 'false',
         DB_URL: 'jdbc:h2:mem:e2e;DB_CLOSE_DELAY=-1',
         DB_USER: 'sa',
         DB_PASSWORD: '',

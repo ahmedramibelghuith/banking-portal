@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { ApiService, errorMessage } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
-import { Account, Operation } from '../core/models';
+import { PagedList } from '../core/paged-list';
+import type { Account, Operation } from '../core/models';
 import { OperationComponent } from '../operation/operation.component';
 import { WithdrawComponent } from '../withdraw/withdraw.component';
 import { TransferComponent } from '../transfer/transfer.component';
@@ -21,29 +23,34 @@ export class HomeComponent implements OnInit {
   private router = inject(Router);
   auth = inject(AuthService);
   accounts: Account[] = [];
-  operations: Operation[] = [];
-  selectedId: number | null = null;
+  historyList: PagedList<Operation> | null = null;
+  selectedId: string | null = null;
+  page = 0;
+  last = true;
+  accountCount = 0;
+  total = '0.00';
   loading = true;
   busy = false;
-  historyLoading = false;
   error = '';
-  historyError = '';
   message = '';
   isMenuOpened = false;
-  get total() {
-    return this.accounts
-      .filter((a) => a.etat === 'ACTIVE')
-      .reduce((total, a) => total + Number(a.solde), 0);
-  }
   ngOnInit() {
     void this.load();
   }
-  async load() {
+  async load(page = this.page) {
     this.loading = true;
     this.error = '';
     try {
-      this.accounts = await firstValueFrom(this.api.accounts());
-      if (this.selectedId !== null) await this.history(this.selectedId);
+      const [accounts, totals] = await Promise.all([
+        firstValueFrom(this.api.accounts(page)),
+        firstValueFrom(this.api.accountTotals()),
+      ]);
+      this.accounts = accounts.content;
+      this.page = accounts.page;
+      this.last = accounts.last;
+      this.accountCount = totals.count;
+      this.total = totals.total;
+      if (this.historyList) await this.historyList.load();
     } catch (error) {
       this.error = errorMessage(error);
     } finally {
@@ -58,7 +65,7 @@ export class HomeComponent implements OnInit {
     try {
       await firstValueFrom(this.api.createAccount(type));
       this.message = 'Account opened.';
-      await this.load();
+      await this.load(0);
     } catch (error) {
       this.error = errorMessage(error);
     } finally {
@@ -84,19 +91,10 @@ export class HomeComponent implements OnInit {
       this.busy = false;
     }
   }
-  async history(id: number) {
+  async history(id: string) {
     this.selectedId = id;
-    this.historyLoading = true;
-    this.historyError = '';
-    this.operations = [];
-    try {
-      const operations = await firstValueFrom(this.api.history(id));
-      if (this.selectedId === id) this.operations = operations;
-    } catch (error) {
-      if (this.selectedId === id) this.historyError = errorMessage(error);
-    } finally {
-      if (this.selectedId === id) this.historyLoading = false;
-    }
+    this.historyList = new PagedList((page) => this.api.history(id, page));
+    await this.historyList.load(0);
   }
   async transact(account: Account, kind: 'deposit' | 'withdraw' | 'transfer') {
     const component =

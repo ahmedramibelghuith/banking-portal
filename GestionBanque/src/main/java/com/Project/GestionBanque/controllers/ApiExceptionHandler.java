@@ -18,7 +18,10 @@ public class ApiExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   ResponseEntity<?> validation(MethodArgumentNotValidException ex) {
-    var error = ex.getBindingResult().getFieldErrors().getFirst();
+    var errors = ex.getBindingResult().getFieldErrors();
+    if (errors.isEmpty())
+      return ResponseEntity.badRequest().body(Map.of("message", "Invalid request"));
+    var error = errors.getFirst();
     return ResponseEntity.badRequest()
         .body(Map.of("message", error.getField() + ": " + error.getDefaultMessage()));
   }

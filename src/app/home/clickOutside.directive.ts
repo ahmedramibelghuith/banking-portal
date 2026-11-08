@@ -1,49 +1,19 @@
-import {
-  DOCUMENT,
-  AfterViewInit,
-  Directive,
-  ElementRef,
-  EventEmitter,
-  Inject,
-  OnDestroy,
-  Output,
-} from '@angular/core';
-import { filter, fromEvent, Subscription } from 'rxjs';
-
-@Directive({
-  selector: '[clickOutside]',
-  standalone: false,
-})
+import { DOCUMENT, Directive, ElementRef, EventEmitter, Output, inject } from '@angular/core';
+import type { AfterViewInit, OnDestroy } from '@angular/core';
+import { filter, fromEvent } from 'rxjs';
+import type { Subscription } from 'rxjs';
+@Directive({ selector: '[clickOutside]', standalone: false })
 export class ClickOutsideDirective implements AfterViewInit, OnDestroy {
   @Output() clickOutside = new EventEmitter<void>();
-
-  documentClickSubscription: Subscription | undefined;
-
-  constructor(
-    private element: ElementRef,
-    @Inject(DOCUMENT) private document: Document,
-  ) {}
-
+  private element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private document = inject(DOCUMENT);
+  private subscription: Subscription | undefined;
   ngAfterViewInit(): void {
-    this.documentClickSubscription = fromEvent(this.document, 'click')
-      .pipe(
-        filter((event) => {
-          return !this.isInside(event.target as HTMLElement);
-        }),
-      )
-      .subscribe(() => {
-        this.clickOutside.emit();
-      });
+    this.subscription = fromEvent(this.document, 'click')
+      .pipe(filter((event) => !this.element.nativeElement.contains(event.target as Node | null)))
+      .subscribe(() => this.clickOutside.emit());
   }
-
   ngOnDestroy(): void {
-    this.documentClickSubscription?.unsubscribe();
-  }
-
-  isInside(elementToCheck: HTMLElement): boolean {
-    return (
-      elementToCheck === this.element.nativeElement ||
-      this.element.nativeElement.contains(elementToCheck)
-    );
+    this.subscription?.unsubscribe();
   }
 }

@@ -2,12 +2,14 @@ package com.Project.GestionBanque.config;
 
 import com.Project.GestionBanque.repositories.ClientRepository;
 import java.util.Locale;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 
 @Configuration
@@ -32,8 +34,16 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain security(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(
+  FilterRegistrationBean<AuthRateLimitFilter> limiterRegistration(AuthRateLimitFilter filter) {
+    var registration = new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
+  @Bean
+  SecurityFilterChain security(HttpSecurity http, AuthRateLimitFilter rateLimit) throws Exception {
+    http.addFilterBefore(rateLimit, UsernamePasswordAuthenticationFilter.class)
+        .authorizeHttpRequests(
             a ->
                 a.requestMatchers(
                         "/api/auth/csrf", "/api/auth/register", "/api/auth/login", "/error")

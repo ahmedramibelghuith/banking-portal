@@ -4,7 +4,6 @@ import com.Project.GestionBanque.controllers.ApiModels.*;
 import com.Project.GestionBanque.services.BankingService;
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +16,16 @@ public class CompteBancaireController {
   }
 
   @GetMapping
-  public List<AccountView> accounts(Principal p) {
-    return bank.accounts(p.getName());
+  public PageView<AccountView> accounts(
+      Principal p,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "25") int size) {
+    return bank.accounts(p.getName(), page, size);
+  }
+
+  @GetMapping("/summary")
+  public AccountTotals totals(Principal principal) {
+    return bank.accountTotals(principal.getName());
   }
 
   @PostMapping
@@ -32,7 +39,11 @@ public class CompteBancaireController {
   }
 
   @GetMapping("/{id}/operations")
-  public List<OperationView> history(Principal p, @PathVariable Long id) {
-    return bank.history(p.getName(), id);
+  public PageView<OperationView> history(
+      Principal p,
+      @PathVariable Long id,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "25") int size) {
+    return bank.history(p.getName(), id, page, size);
   }
 }

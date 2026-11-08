@@ -1,24 +1,24 @@
 export interface User {
-  id: number;
+  id: string;
   nom: string;
   prenom: string;
   email: string;
   role: 'USER' | 'ADMIN';
 }
 export interface Account {
-  id: number;
+  id: string;
   dateCreation: string;
-  solde: number;
+  solde: string;
   etat: 'ACTIVE' | 'FERME' | 'BLOQUE';
   type: 'CURRENT' | 'SAVINGS';
-  clientId: number;
+  clientId: string;
   clientEmail: string;
 }
 export interface Operation {
-  id: number;
-  compteId: number;
+  id: string;
+  compteId: string;
   dateOperation: string;
-  montant: number;
+  montant: string;
   type: 'CREDIT' | 'DEBIT';
   reference: string;
 }
@@ -26,4 +26,16 @@ export interface Summary {
   clients: number;
   accounts: number;
   transactions: number;
+}
+
+export interface PageView<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  last: boolean;
+}
+export interface AccountTotals {
+  total: string;
+  count: number;
 }

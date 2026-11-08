@@ -16,17 +16,26 @@ public class OperationController {
   }
 
   @PostMapping("/versement")
-  public OperationView deposit(Principal p, @Valid @RequestBody MoneyRequest r) {
-    return bank.deposit(p.getName(), r);
+  public OperationView deposit(
+      Principal p,
+      @Valid @RequestBody MoneyRequest r,
+      @RequestHeader("Idempotency-Key") String key) {
+    return bank.deposit(p.getName(), r, key);
   }
 
   @PostMapping("/retrait")
-  public OperationView withdraw(Principal p, @Valid @RequestBody MoneyRequest r) {
-    return bank.withdraw(p.getName(), r);
+  public OperationView withdraw(
+      Principal p,
+      @Valid @RequestBody MoneyRequest r,
+      @RequestHeader("Idempotency-Key") String key) {
+    return bank.withdraw(p.getName(), r, key);
   }
 
   @PostMapping("/virement")
-  public void transfer(Principal p, @Valid @RequestBody TransferRequest r) {
-    bank.transfer(p.getName(), r);
+  public void transfer(
+      Principal p,
+      @Valid @RequestBody TransferRequest r,
+      @RequestHeader("Idempotency-Key") String key) {
+    bank.transfer(p.getName(), r, key);
   }
 }

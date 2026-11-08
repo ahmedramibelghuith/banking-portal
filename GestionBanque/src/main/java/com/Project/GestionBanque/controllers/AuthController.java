@@ -5,7 +5,6 @@ import com.Project.GestionBanque.enteties.Client;
 import com.Project.GestionBanque.repositories.ClientRepository;
 import com.Project.GestionBanque.services.BankingService;
 import jakarta.validation.Valid;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -21,10 +20,10 @@ public class AuthController {
   private final PasswordEncoder passwords;
   private final BankingService bank;
 
-  public AuthController(ClientRepository c, PasswordEncoder p, BankingService b) {
-    clients = c;
-    passwords = p;
-    bank = b;
+  public AuthController(ClientRepository clients, PasswordEncoder passwords, BankingService bank) {
+    this.clients = clients;
+    this.passwords = passwords;
+    this.bank = bank;
   }
 
   @GetMapping("/csrf")
@@ -41,8 +40,6 @@ public class AuthController {
   @ResponseStatus(HttpStatus.CREATED)
   public UserView register(@Valid @RequestBody Registration r) {
     String email = r.email().trim().toLowerCase(Locale.ROOT);
-    if (r.password().getBytes(StandardCharsets.UTF_8).length > 72)
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password exceeds 72 UTF-8 bytes");
     if (clients.findByEmail(email).isPresent())
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "An account with this email already exists");

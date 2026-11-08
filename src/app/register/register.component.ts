@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
+import { passwordBytesValidator } from '../core/form-validators';
 import { errorMessage } from '../core/api.service';
 @Component({
   selector: 'app-register',
@@ -18,12 +19,20 @@ export class RegisterComponent {
       prenom: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
       nom: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
-      password: ['', [Validators.required, Validators.minLength(12), Validators.maxLength(64)]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(12),
+          Validators.maxLength(64),
+          passwordBytesValidator,
+        ],
+      ],
       confirmation: ['', Validators.required],
     },
     {
-      validators: (c: AbstractControl) =>
-        c.get('password')?.value === c.get('confirmation')?.value
+      validators: (control) =>
+        control.get('password')?.value === control.get('confirmation')?.value
           ? null
           : { passwordMismatch: true },
     },
@@ -45,7 +54,7 @@ export class RegisterComponent {
         email: email.trim(),
         password,
       });
-      await this.router.navigate(['/home']);
+      await this.router.navigate(['/login'], { queryParams: { registered: 'true' } });
     } catch (error) {
       this.error = errorMessage(error);
     } finally {

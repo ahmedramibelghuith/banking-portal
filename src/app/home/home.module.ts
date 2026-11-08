@@ -1,3 +1,5 @@
+import { MoneyPipe } from '../core/money';
+import { PaginationComponent } from '../core/pagination.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -18,6 +20,8 @@ import { TransferComponent } from '../transfer/transfer.component';
   ],
   imports: [
     CommonModule,
+    MoneyPipe,
+    PaginationComponent,
     ReactiveFormsModule,
     MatDialogModule,
     RouterModule.forChild([{ path: '', component: HomeComponent }]),

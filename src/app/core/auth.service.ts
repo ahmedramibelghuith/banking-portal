@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import type { HttpInterceptorFn } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { User } from './models';
+import type { User } from './models';
 @Injectable({ providedIn: 'root' })
 export class CsrfState {
   header = '';
@@ -50,12 +51,15 @@ export class AuthService {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       }),
     );
-    return this.restore();
+    const user = await this.restore();
+    if (!user)
+      throw new Error('Sign-in completed without an active session. Please sign in again.');
+    return user;
   }
   async register(data: { nom: string; prenom: string; email: string; password: string }) {
     await this.refreshCsrf();
     await firstValueFrom(this.http.post<User>('/api/auth/register', data));
-    return this.login(data.email, data.password);
+    return;
   }
   async logout() {
     await this.refreshCsrf();

@@ -1,3 +1,4 @@
+import { PaginationComponent } from '../core/pagination.component';
 import { TestBed } from '@angular/core/testing';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
@@ -7,9 +8,14 @@ describe('ListComponent', () => {
   it('renders an empty result returned by the API', async () => {
     await TestBed.configureTestingModule({
       declarations: [ListComponent],
-      imports: [MatDialogModule],
+      imports: [PaginationComponent, MatDialogModule],
       providers: [
-        { provide: ApiService, useValue: { clients: () => of([]) } },
+        {
+          provide: ApiService,
+          useValue: {
+            clients: () => of({ content: [], page: 0, size: 25, totalElements: 0, last: true }),
+          },
+        },
         { provide: MatDialogRef, useValue: { close() {} } },
       ],
     }).compileComponents();

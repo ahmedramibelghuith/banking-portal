@@ -18,7 +18,7 @@ public class Operation {
   private CompteBancaire compte;
 
   @Column(nullable = false)
-  private Instant dateOperation = Instant.now();
+  private Instant dateOperation = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
 
   @Column(nullable = false, precision = 19, scale = 2)
   private BigDecimal montant;

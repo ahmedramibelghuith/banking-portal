@@ -3,10 +3,10 @@
     <h2 mat-dialog-title>Transactions</h2>
     <button class="secondary" (click)="dialog.close()">Close</button>
   </header>
-  @if (loading) {
+  @if (list.loading) {
     <p role="status">Loading…</p>
-  } @else if (error) {
-    <p class="error" role="alert">{{ error }}</p>
+  } @else if (list.error) {
+    <p class="error" role="alert">{{ list.error }}</p>
   } @else {
     <div class="table-scroll">
       <table>
@@ -21,13 +21,13 @@
           </tr>
         </thead>
         <tbody>
-          @for (row of rows; track row.id) {
+          @for (row of list.rows; track row.id) {
             <tr>
               <td>{{ row.id }}</td>
               <td>{{ row.compteId }}</td>
               <td>{{ row.dateOperation | date: 'medium' }}</td>
               <td>{{ row.type }}</td>
-              <td>{{ row.montant | currency: 'USD' }}</td>
+              <td>{{ row.montant | money }}</td>
               <td>{{ row.reference }}</td>
             </tr>
           } @empty {
@@ -39,4 +39,10 @@
       </table>
     </div>
   }
+  <app-pagination
+    [page]="list.page"
+    [last]="list.last"
+    [busy]="list.loading"
+    (pageChange)="list.load($event)"
+  />
 </section>

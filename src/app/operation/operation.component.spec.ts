@@ -1,3 +1,4 @@
+import { MoneyPipe } from '../core/money';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -10,11 +11,11 @@ describe('OperationComponent', () => {
     const dialog = { close: jasmine.createSpy('close'), disableClose: false };
     await TestBed.configureTestingModule({
       declarations: [OperationComponent],
-      imports: [ReactiveFormsModule, MatDialogModule],
+      imports: [MoneyPipe, ReactiveFormsModule, MatDialogModule],
       providers: [
         { provide: ApiService, useValue: { deposit: action } },
         { provide: MatDialogRef, useValue: dialog },
-        { provide: MAT_DIALOG_DATA, useValue: { account: { id: 1, solde: 100 } } },
+        { provide: MAT_DIALOG_DATA, useValue: { account: { id: '1', solde: '100.00' } } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(OperationComponent);
@@ -26,7 +27,7 @@ describe('OperationComponent', () => {
     expect(dialog.close).not.toHaveBeenCalled();
     fixture.componentInstance.form.controls.amount.setValue('10.25');
     await fixture.componentInstance.deposit();
-    expect(action).toHaveBeenCalled();
+    expect(action).toHaveBeenCalledWith('1', '10.25', jasmine.stringMatching(/^[0-9a-f-]{36}$/));
     expect(dialog.close).toHaveBeenCalledWith(true);
   });
 });

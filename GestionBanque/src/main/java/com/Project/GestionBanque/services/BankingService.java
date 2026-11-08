@@ -4,7 +4,10 @@ import com.Project.GestionBanque.controllers.ApiModels.*;
 import com.Project.GestionBanque.enteties.*;
 import com.Project.GestionBanque.repositories.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +20,65 @@ public class BankingService {
   private final CompteBancaireRepository accounts;
   private final OperationRepository operations;
 
-  public BankingService(ClientRepository c, CompteBancaireRepository a, OperationRepository o) {
-    clients = c;
-    accounts = a;
-    operations = o;
+  private final OperationRequestRepository requests;
+
+  public BankingService(
+      ClientRepository clients,
+      CompteBancaireRepository accounts,
+      OperationRepository operations,
+      OperationRequestRepository requests) {
+    this.clients = clients;
+    this.accounts = accounts;
+    this.operations = operations;
+    this.requests = requests;
+  }
+
+  private Client lockCustomer(String email) {
+    return clients
+        .findLockedByEmail(email)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+  }
+
+  private String fingerprint(String kind, Long source, Long target, BigDecimal amount) {
+    return kind
+        + ":"
+        + source
+        + ":"
+        + target
+        + ":"
+        + amount.setScale(2, RoundingMode.UNNECESSARY).toPlainString();
+  }
+
+  private OperationRequest previous(Client client, String key, String fingerprint) {
+    if (key == null
+        || !key.matches(
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"))
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Supply a UUID Idempotency-Key header");
+    var previous =
+        requests
+            .findByClientIdAndRequestKey(client.getId(), key.toLowerCase(Locale.ROOT))
+            .orElse(null);
+    if (previous != null && !previous.getFingerprint().equals(fingerprint))
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "This Idempotency-Key was already used for a different request");
+    return previous;
+  }
+
+  private void remember(Client client, String key, String fingerprint, Long operationId) {
+    var request = new OperationRequest();
+    request.setClient(client);
+    request.setRequestKey(key.toLowerCase(Locale.ROOT));
+    request.setFingerprint(fingerprint);
+    if (operationId != null) request.setOperation(operations.getReferenceById(operationId));
+    requests.save(request);
+  }
+
+  private static PageRequest page(int page, int size) {
+    if (page < 0 || size < 1 || size > 100)
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Page must be nonnegative and size between 1 and 100");
+    return PageRequest.of(page, size, Sort.by("id").descending());
   }
 
   public Client user(String email) {
@@ -72,17 +130,22 @@ public class BankingService {
       CompteBancaire account, BigDecimal amount, TypeOperation type, String reference) {
     Operation operation = new Operation();
     operation.setCompte(account);
-    operation.setMontant(amount);
+    operation.setMontant(amount.setScale(2, RoundingMode.UNNECESSARY));
     operation.setType(type);
     operation.setReference(reference);
     return OperationView.of(operations.save(operation));
   }
 
   @Transactional(readOnly = true)
-  public List<AccountView> accounts(String email) {
-    return accounts.findByClientIdOrderById(user(email).getId()).stream()
-        .map(AccountView::of)
-        .toList();
+  public PageView<AccountView> accounts(String email, int page, int size) {
+    return PageView.of(
+        accounts.findByClientId(user(email).getId(), page(page, size)).map(AccountView::of));
+  }
+
+  @Transactional(readOnly = true)
+  public AccountTotals accountTotals(String email) {
+    Long id = user(email).getId();
+    return new AccountTotals(accounts.activeTotal(id), accounts.countByClientId(id));
   }
 
   public AccountView create(String email, String type) {
@@ -100,64 +163,87 @@ public class BankingService {
     account.setEtat("FERME");
   }
 
-  public OperationView deposit(String email, MoneyRequest r) {
-    amount(r.montant());
-    CompteBancaire account = locked(r.compteId());
-    owns(account, email);
-    active(account);
-    credit(account, r.montant());
-    return record(account, r.montant(), TypeOperation.CREDIT, UUID.randomUUID().toString());
+  public OperationView deposit(String email, MoneyRequest request, String key) {
+    return cashOperation(email, request, key, TypeOperation.CREDIT);
   }
 
-  public OperationView withdraw(String email, MoneyRequest r) {
-    amount(r.montant());
-    CompteBancaire account = locked(r.compteId());
-    owns(account, email);
-    active(account);
-    debit(account, r.montant());
-    return record(account, r.montant(), TypeOperation.DEBIT, UUID.randomUUID().toString());
+  public OperationView withdraw(String email, MoneyRequest request, String key) {
+    return cashOperation(email, request, key, TypeOperation.DEBIT);
   }
 
-  public void transfer(String email, TransferRequest r) {
-    amount(r.montant());
-    if (r.compteSourceId().equals(r.compteDestinataireId()))
+  private OperationView cashOperation(
+      String email, MoneyRequest request, String key, TypeOperation type) {
+    amount(request.montant());
+    // Serialize requests per customer before taking account locks, including duplicate retries.
+    Client customer = lockCustomer(email);
+    String fingerprint = fingerprint(type.name(), request.compteId(), null, request.montant());
+    var previous = previous(customer, key, fingerprint);
+    if (previous != null) return OperationView.of(previous.getOperation());
+    var account = locked(request.compteId());
+    owns(account, email);
+    active(account);
+    if (type == TypeOperation.CREDIT) credit(account, request.montant());
+    else debit(account, request.montant());
+    var result = record(account, request.montant(), type, UUID.randomUUID().toString());
+    remember(customer, key, fingerprint, result.id());
+    return result;
+  }
+
+  public void transfer(String email, TransferRequest request, String key) {
+    amount(request.montant());
+    Client customer = lockCustomer(email);
+    String fingerprint =
+        fingerprint(
+            "TRANSFER",
+            request.compteSourceId(),
+            request.compteDestinataireId(),
+            request.montant());
+    if (previous(customer, key, fingerprint) != null) return;
+    if (request.compteSourceId().equals(request.compteDestinataireId()))
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Choose a different destination account");
     // Lock both accounts in ID order to avoid opposite transfers deadlocking.
-    CompteBancaire first = locked(Math.min(r.compteSourceId(), r.compteDestinataireId()));
-    CompteBancaire second = locked(Math.max(r.compteSourceId(), r.compteDestinataireId()));
-    CompteBancaire source = first.getId().equals(r.compteSourceId()) ? first : second;
-    CompteBancaire target = first == source ? second : first;
+    var first = locked(Math.min(request.compteSourceId(), request.compteDestinataireId()));
+    var second = locked(Math.max(request.compteSourceId(), request.compteDestinataireId()));
+    var source = first.getId().equals(request.compteSourceId()) ? first : second;
+    var target = first == source ? second : first;
     owns(source, email);
     active(source);
     active(target);
-    debit(source, r.montant());
-    credit(target, r.montant());
+    debit(source, request.montant());
+    credit(target, request.montant());
     String reference = UUID.randomUUID().toString();
-    record(source, r.montant(), TypeOperation.DEBIT, reference);
-    record(target, r.montant(), TypeOperation.CREDIT, reference);
+    record(source, request.montant(), TypeOperation.DEBIT, reference);
+    record(target, request.montant(), TypeOperation.CREDIT, reference);
+    remember(customer, key, fingerprint, null);
   }
 
   @Transactional(readOnly = true)
-  public List<OperationView> history(String email, Long id) {
+  public PageView<OperationView> history(String email, Long id, int page, int size) {
     CompteBancaire account =
         accounts
             .findById(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
     owns(account, email);
-    return operations.findByCompteIdOrderByDateOperationDescIdDesc(id).stream()
-        .map(OperationView::of)
-        .toList();
+    return PageView.of(
+        operations
+            .findByCompteIdOrderByDateOperationDescIdDesc(id, page(page, size))
+            .map(OperationView::of));
   }
 
   @Transactional(readOnly = true)
-  public List<AccountView> allAccounts() {
-    return accounts.findAll().stream().map(AccountView::of).toList();
+  public PageView<UserView> allClients(int page, int size) {
+    return PageView.of(clients.findAll(page(page, size)).map(UserView::of));
   }
 
   @Transactional(readOnly = true)
-  public List<OperationView> allOperations() {
-    return operations.findAll().stream().map(OperationView::of).toList();
+  public PageView<AccountView> allAccounts(int page, int size) {
+    return PageView.of(accounts.findAll(page(page, size)).map(AccountView::of));
+  }
+
+  @Transactional(readOnly = true)
+  public PageView<OperationView> allOperations(int page, int size) {
+    return PageView.of(operations.findAll(page(page, size)).map(OperationView::of));
   }
 }

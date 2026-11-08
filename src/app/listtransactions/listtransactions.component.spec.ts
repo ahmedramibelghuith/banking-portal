@@ -1,3 +1,5 @@
+import { MoneyPipe } from '../core/money';
+import { PaginationComponent } from '../core/pagination.component';
 import { TestBed } from '@angular/core/testing';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
@@ -7,9 +9,15 @@ describe('ListtransactionsComponent', () => {
   it('renders an empty result returned by the API', async () => {
     await TestBed.configureTestingModule({
       declarations: [ListtransactionsComponent],
-      imports: [MatDialogModule],
+      imports: [MoneyPipe, PaginationComponent, MatDialogModule],
       providers: [
-        { provide: ApiService, useValue: { allOperations: () => of([]) } },
+        {
+          provide: ApiService,
+          useValue: {
+            allOperations: () =>
+              of({ content: [], page: 0, size: 25, totalElements: 0, last: true }),
+          },
+        },
         { provide: MatDialogRef, useValue: { close() {} } },
       ],
     }).compileComponents();

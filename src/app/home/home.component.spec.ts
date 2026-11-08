@@ -1,3 +1,5 @@
+import { MoneyPipe } from '../core/money';
+import { PaginationComponent } from '../core/pagination.component';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -6,27 +8,28 @@ import { HomeComponent } from './home.component';
 import { ClickOutsideDirective } from './clickOutside.directive';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
-import { Account } from '../core/models';
+import type { Account } from '../core/models';
 describe('HomeComponent', () => {
   it('loads server balances and keeps existing accounts when creation fails', async () => {
     const accounts: Account[] = [
       {
-        id: 1,
+        id: '1',
         dateCreation: '2026-01-01',
-        solde: 125.5,
+        solde: '125.50',
         etat: 'ACTIVE',
         type: 'CURRENT',
-        clientId: 1,
+        clientId: '1',
         clientEmail: 'test@example.com',
       },
     ];
     const api = {
-      accounts: () => of(accounts),
+      accounts: () => of({ content: accounts, page: 0, size: 25, totalElements: 1, last: true }),
+      accountTotals: () => of({ total: '125.50', count: 1 }),
       createAccount: () => throwError(() => new Error('offline')),
     };
     await TestBed.configureTestingModule({
       declarations: [HomeComponent, ClickOutsideDirective],
-      imports: [RouterModule],
+      imports: [MoneyPipe, PaginationComponent, RouterModule],
       providers: [
         provideRouter([]),
         { provide: ApiService, useValue: api },
@@ -38,7 +41,7 @@ describe('HomeComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.componentInstance.total).toBe(125.5);
+    expect(fixture.componentInstance.total).toBe('125.50');
     await fixture.componentInstance.create('SAVINGS');
     fixture.detectChanges();
     expect(fixture.componentInstance.accounts).toEqual(accounts);

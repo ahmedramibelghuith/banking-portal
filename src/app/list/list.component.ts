@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
-import { ApiService, errorMessage } from '../core/api.service';
-import { User } from '../core/models';
+import { ApiService } from '../core/api.service';
+import { PagedList } from '../core/paged-list';
+import type { User } from '../core/models';
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',
@@ -13,16 +14,8 @@ import { User } from '../core/models';
 export class ListComponent implements OnInit {
   private api = inject(ApiService);
   dialog = inject<MatDialogRef<ListComponent>>(MatDialogRef);
-  rows: User[] = [];
-  loading = true;
-  error = '';
-  async ngOnInit() {
-    try {
-      this.rows = await firstValueFrom(this.api.clients());
-    } catch (error) {
-      this.error = errorMessage(error);
-    } finally {
-      this.loading = false;
-    }
+  list = new PagedList<User>((page) => this.api.clients(page));
+  ngOnInit() {
+    void this.list.load();
   }
 }

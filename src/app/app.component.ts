@@ -7,6 +7,4 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class AppComponent {
-  title = 'banking-portal';
-}
+export class AppComponent {}

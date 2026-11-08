@@ -32,8 +32,8 @@
     </header>
     <section class="balance-banner">
       <p>Total active balance</p>
-      <strong>{{ total | currency: 'USD' }}</strong
-      ><span>{{ accounts.length }} accounts</span>
+      <strong>{{ total | money }}</strong
+      ><span>{{ accountCount }} accounts</span>
     </section>
     @if (error) {
       <p class="error" role="alert">{{ error }}</p>
@@ -60,7 +60,7 @@
           <p class="muted">
             Account #{{ account.id }} · Opened {{ account.dateCreation | date: 'mediumDate' }}
           </p>
-          <p class="account-balance">{{ account.solde | currency: 'USD' }}</p>
+          <p class="account-balance">{{ account.solde | money }}</p>
           <div class="actions">
             @if (account.etat === 'ACTIVE') {
               <button (click)="transact(account, 'deposit')">Deposit</button
@@ -77,13 +77,14 @@
         </article>
       }
     </section>
-    @if (selectedId !== null) {
+    <app-pagination [page]="page" [last]="last" [busy]="loading" (pageChange)="load($event)" />
+    @if (historyList; as history) {
       <section class="history">
         <h2>Transactions · Account #{{ selectedId }}</h2>
-        @if (historyLoading) {
+        @if (history.loading) {
           <p role="status">Loading transactions…</p>
-        } @else if (historyError) {
-          <p class="error" role="alert">{{ historyError }}</p>
+        } @else if (history.error) {
+          <p class="error" role="alert">{{ history.error }}</p>
         } @else {
           <div class="table-scroll">
             <table>
@@ -96,11 +97,11 @@
                 </tr>
               </thead>
               <tbody>
-                @for (operation of operations; track operation.id) {
+                @for (operation of history.rows; track operation.id) {
                   <tr>
                     <td>{{ operation.dateOperation | date: 'medium' }}</td>
                     <td>{{ operation.type }}</td>
-                    <td>{{ operation.montant | currency: 'USD' }}</td>
+                    <td>{{ operation.montant | money }}</td>
                     <td class="reference">{{ operation.reference }}</td>
                   </tr>
                 } @empty {
@@ -112,6 +113,12 @@
             </table>
           </div>
         }
+        <app-pagination
+          [page]="history.page"
+          [last]="history.last"
+          [busy]="history.loading"
+          (pageChange)="history.load($event)"
+        />
       </section>
     }
   </main>

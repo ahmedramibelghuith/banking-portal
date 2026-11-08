@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { ApiService, errorMessage } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
-import { Summary } from '../core/models';
+import type { Summary } from '../core/models';
 import { ListComponent } from '../list/list.component';
 import { ListcomptesComponent } from '../listcomptes/listcomptes.component';
 import { ListtransactionsComponent } from '../listtransactions/listtransactions.component';
@@ -37,13 +38,13 @@ export class AdminComponent implements OnInit {
       this.loading = false;
     }
   }
-  list() {
+  showClients() {
     this.dialog.open(ListComponent, { width: '900px', maxWidth: '95vw' });
   }
-  Operationscomptes() {
+  showAccounts() {
     this.dialog.open(ListcomptesComponent, { width: '1000px', maxWidth: '95vw' });
   }
-  Operationstransactions() {
+  showTransactions() {
     this.dialog.open(ListtransactionsComponent, { width: '1000px', maxWidth: '95vw' });
   }
   async logout() {

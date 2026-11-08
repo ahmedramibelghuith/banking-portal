@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Account, Operation, Summary, User } from './models';
+import type { Account, Operation, Summary, User, PageView, AccountTotals } from './models';
 export function errorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0 || error.status === 502 || error.status === 504)
@@ -14,41 +14,56 @@ export function errorMessage(error: unknown): string {
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  accounts() {
-    return this.http.get<Account[]>('/api/comptes');
+  accounts(page = 0) {
+    return this.http.get<PageView<Account>>(`/api/comptes?page=${page}`);
+  }
+  accountTotals() {
+    return this.http.get<AccountTotals>('/api/comptes/summary');
   }
   createAccount(type: Account['type']) {
     return this.http.post<Account>('/api/comptes', { type });
   }
-  closeAccount(id: number) {
+  closeAccount(id: string) {
     return this.http.delete<void>(`/api/comptes/${id}`);
   }
-  history(id: number) {
-    return this.http.get<Operation[]>(`/api/comptes/${id}/operations`);
+  history(id: string, page = 0) {
+    return this.http.get<PageView<Operation>>(`/api/comptes/${id}/operations?page=${page}`);
   }
-  deposit(compteId: number, montant: string) {
-    return this.http.post<Operation>('/api/operations/versement', { compteId, montant });
+  deposit(compteId: string, montant: string, key: string) {
+    return this.http.post<Operation>(
+      '/api/operations/versement',
+      { compteId, montant },
+      { headers: { 'Idempotency-Key': key } },
+    );
   }
-  withdraw(compteId: number, montant: string) {
-    return this.http.post<Operation>('/api/operations/retrait', { compteId, montant });
+  withdraw(compteId: string, montant: string, key: string) {
+    return this.http.post<Operation>(
+      '/api/operations/retrait',
+      { compteId, montant },
+      { headers: { 'Idempotency-Key': key } },
+    );
   }
-  transfer(compteSourceId: number, compteDestinataireId: number, montant: string) {
-    return this.http.post<void>('/api/operations/virement', {
-      compteSourceId,
-      compteDestinataireId,
-      montant,
-    });
+  transfer(compteSourceId: string, compteDestinataireId: string, montant: string, key: string) {
+    return this.http.post<void>(
+      '/api/operations/virement',
+      {
+        compteSourceId,
+        compteDestinataireId,
+        montant,
+      },
+      { headers: { 'Idempotency-Key': key } },
+    );
   }
   summary() {
     return this.http.get<Summary>('/api/admin/summary');
   }
-  clients() {
-    return this.http.get<User[]>('/api/admin/clients');
+  clients(page = 0) {
+    return this.http.get<PageView<User>>(`/api/admin/clients?page=${page}`);
   }
-  allAccounts() {
-    return this.http.get<Account[]>('/api/admin/comptes');
+  allAccounts(page = 0) {
+    return this.http.get<PageView<Account>>(`/api/admin/comptes?page=${page}`);
   }
-  allOperations() {
-    return this.http.get<Operation[]>('/api/admin/operations');
+  allOperations(page = 0) {
+    return this.http.get<PageView<Operation>>(`/api/admin/operations?page=${page}`);
   }
 }

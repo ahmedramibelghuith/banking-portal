@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
-import { ApiService, errorMessage } from '../core/api.service';
-import { Account } from '../core/models';
+import { ApiService } from '../core/api.service';
+import { moneyValidator } from '../core/form-validators';
+import { TransactionSubmission } from '../core/transaction-submission';
+import type { Account } from '../core/models';
 @Component({
   selector: 'app-operation',
   templateUrl: './operation.component.html',
@@ -13,37 +14,14 @@ import { Account } from '../core/models';
 })
 export class OperationComponent {
   data = inject<{ account: Account }>(MAT_DIALOG_DATA);
-  dialog = inject<MatDialogRef<OperationComponent>>(MatDialogRef);
+  dialog = inject<MatDialogRef<OperationComponent, boolean>>(MatDialogRef);
   private api = inject(ApiService);
-  form = inject(FormBuilder).nonNullable.group({
-    amount: [
-      '',
-      [
-        Validators.required,
-        Validators.pattern(/^(?:0|[1-9]\d{0,11})(?:\.\d{1,2})?$/),
-        (c: AbstractControl) => (Number(c.value) > 0 ? null : { positive: true }),
-      ],
-    ],
-  });
-  busy = false;
-  error = '';
+  submission = new TransactionSubmission(this.dialog);
+  form = inject(FormBuilder).nonNullable.group({ amount: ['', moneyValidator] });
   async deposit() {
-    if (this.form.invalid || this.busy) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.busy = true;
-    this.error = '';
-    this.dialog.disableClose = true;
-    try {
-      const amount = this.form.getRawValue().amount;
-      await firstValueFrom(this.api.deposit(this.data.account.id, amount));
-      this.dialog.close(true);
-    } catch (error) {
-      this.error = errorMessage(error);
-    } finally {
-      this.busy = false;
-      this.dialog.disableClose = false;
-    }
+    const { amount } = this.form.getRawValue();
+    await this.submission.run(this.form, { account: this.data.account.id, amount }, (key) =>
+      this.api.deposit(this.data.account.id, amount, key),
+    );
   }
 }

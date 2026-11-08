@@ -18,13 +18,13 @@
   }
   @if (summary; as stats) {
     <section class="account-grid stats">
-      <button class="stat-card" (click)="list()">
+      <button class="stat-card" (click)="showClients()">
         <span>Clients</span><strong>{{ stats.clients }}</strong
         ><span>View clients →</span></button
-      ><button class="stat-card" (click)="Operationscomptes()">
+      ><button class="stat-card" (click)="showAccounts()">
         <span>Accounts</span><strong>{{ stats.accounts }}</strong
         ><span>View accounts →</span></button
-      ><button class="stat-card" (click)="Operationstransactions()">
+      ><button class="stat-card" (click)="showTransactions()">
         <span>Ledger entries</span><strong>{{ stats.transactions }}</strong
         ><span>View transactions →</span>
       </button>

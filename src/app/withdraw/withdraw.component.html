@@ -1,6 +1,6 @@
 <section class="dialog-content">
   <h2 mat-dialog-title>Withdraw</h2>
-  <p>Account #{{ data.account.id }} · Balance {{ data.account.solde | currency: 'USD' }}</p>
+  <p>Account #{{ data.account.id }} · Balance {{ data.account.solde | money }}</p>
   <form [formGroup]="form" (ngSubmit)="withdraw()">
     <label for="number-input">Amount (USD)</label
     ><input
@@ -13,12 +13,18 @@
     @if (form.touched && form.invalid) {
       <p class="field-error">Enter a positive amount with at most two decimal places.</p>
     }
-    @if (error) {
-      <p class="error" role="alert">{{ error }}</p>
+    @if (submission.error) {
+      <p class="error" role="alert">{{ submission.error }}</p>
     }
     <div class="actions">
-      <button type="submit" [disabled]="busy">{{ busy ? 'Processing…' : 'Withdraw' }}</button
-      ><button type="button" class="secondary" [disabled]="busy" (click)="dialog.close()">
+      <button type="submit" [disabled]="submission.busy">
+        {{ submission.busy ? 'Processing…' : 'Withdraw' }}</button
+      ><button
+        type="button"
+        class="secondary"
+        [disabled]="submission.busy"
+        (click)="dialog.close()"
+      >
         Cancel
       </button>
     </div>

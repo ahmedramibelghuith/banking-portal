@@ -3,7 +3,6 @@ package com.Project.GestionBanque.controllers;
 import com.Project.GestionBanque.controllers.ApiModels.*;
 import com.Project.GestionBanque.repositories.*;
 import com.Project.GestionBanque.services.BankingService;
-import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,11 +14,14 @@ public class AdminController {
   private final OperationRepository operations;
 
   public AdminController(
-      BankingService b, ClientRepository c, CompteBancaireRepository a, OperationRepository o) {
-    bank = b;
-    clients = c;
-    accounts = a;
-    operations = o;
+      BankingService bank,
+      ClientRepository clients,
+      CompteBancaireRepository accounts,
+      OperationRepository operations) {
+    this.bank = bank;
+    this.clients = clients;
+    this.accounts = accounts;
+    this.operations = operations;
   }
 
   @GetMapping("/summary")
@@ -28,17 +30,20 @@ public class AdminController {
   }
 
   @GetMapping("/clients")
-  public List<UserView> clients() {
-    return clients.findAll().stream().map(UserView::of).toList();
+  public PageView<UserView> clients(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size) {
+    return bank.allClients(page, size);
   }
 
   @GetMapping("/comptes")
-  public List<AccountView> accounts() {
-    return bank.allAccounts();
+  public PageView<AccountView> accounts(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size) {
+    return bank.allAccounts(page, size);
   }
 
   @GetMapping("/operations")
-  public List<OperationView> operations() {
-    return bank.allOperations();
+  public PageView<OperationView> operations(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size) {
+    return bank.allOperations(page, size);
   }
 }
